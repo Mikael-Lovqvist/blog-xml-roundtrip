@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root xmlns:blargh="https://example.efforting.tech/stuff">hello
+	<!--comment-->
+	<blargh:tag attribute="value" remove_me="123" change_me="456">data to change</blargh:tag>
+	<!--remove this comment-->
+	<remove_me attribute="value">data</remove_me>
+	<!--replace this comment-->
+	<ammend_me attribute="value"><subdata1/>data to remove<subdata2/></ammend_me>
+	<replace_me attribute="value">data</replace_me>yo
+</root>

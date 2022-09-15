@@ -1,6 +1,6 @@
 # This would not preserve namespaces and it would also not preserve the metatag in the beginning
 # It seems this requires some work¹ with xml.etree.ElementTree so let's try something else
-# ¹ https://stackoverflow.com/questions/67508370/does-elementtree-generate-its-own-nsmap-while-lxml-etree-does-not?noredirect=1&lq=1
+# ¹ https://stackoverflow.com/questions/67508370/does-elementtree-generate-its-own-nsmap-while-lxml-etree-does-not
 
 #  _____       _     _
 # |_   _|__ __| |_  / |

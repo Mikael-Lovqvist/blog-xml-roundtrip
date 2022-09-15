@@ -1,0 +1,74 @@
+<ns0:graphml xmlns:ns0="http://graphml.graphdrawing.org/xmlns" xmlns:ns2="http://www.yworks.com/xml/graphml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+  
+  <ns0:key attr.name="Description" attr.type="string" for="graph" id="d0" />
+  <ns0:key for="port" id="d1" yfiles.type="portgraphics" />
+  <ns0:key for="port" id="d2" yfiles.type="portgeometry" />
+  <ns0:key for="port" id="d3" yfiles.type="portuserdata" />
+  <ns0:key attr.name="url" attr.type="string" for="node" id="d4" />
+  <ns0:key attr.name="description" attr.type="string" for="node" id="d5" />
+  <ns0:key for="node" id="d6" yfiles.type="nodegraphics" />
+  <ns0:key for="graphml" id="d7" yfiles.type="resources" />
+  <ns0:key attr.name="url" attr.type="string" for="edge" id="d8" />
+  <ns0:key attr.name="description" attr.type="string" for="edge" id="d9" />
+  <ns0:key for="edge" id="d10" yfiles.type="edgegraphics" />
+  <ns0:graph edgedefault="directed" id="G">
+    <ns0:data key="d0" />
+    <ns0:node id="n0">
+      <ns0:data key="d5" />
+      <ns0:data key="d6">
+        <ns2:ShapeNode>
+          <ns2:Geometry height="30.0" width="30.0" x="378.0" y="460.0" />
+          <ns2:Fill color="#FFCC00" transparent="false" />
+          <ns2:BorderStyle color="#000000" raised="false" type="line" width="1.0" />
+          <ns2:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="20.344114303588867" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="67.78045654296875" x="-18.890228271484375" y="4.827942848205566">Some node<ns2:LabelModel>
+              <ns2:SmartNodeLabelModel distance="4.0" />
+            </ns2:LabelModel>
+            <ns2:ModelParameter>
+              <ns2:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0" />
+            </ns2:ModelParameter>
+          </ns2:NodeLabel>
+          <ns2:Shape type="rectangle3d" />
+        </ns2:ShapeNode>
+      </ns0:data>
+    </ns0:node>
+    <ns0:node id="n1">
+      <ns0:data key="d5" />
+      <ns0:data key="d6">
+        <ns2:ShapeNode>
+          <ns2:Geometry height="30.0" width="30.0" x="432.0" y="539.0" />
+          <ns2:Fill color="#FFCC00" transparent="false" />
+          <ns2:BorderStyle color="#000000" raised="false" type="line" width="1.0" />
+          <ns2:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="20.344114303588867" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="68.78846740722656" x="-19.39423370361328" y="4.827942848205566">Other node<ns2:LabelModel>
+              <ns2:SmartNodeLabelModel distance="4.0" />
+            </ns2:LabelModel>
+            <ns2:ModelParameter>
+              <ns2:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0" />
+            </ns2:ModelParameter>
+          </ns2:NodeLabel>
+          <ns2:Shape type="rectangle3d" />
+        </ns2:ShapeNode>
+      </ns0:data>
+    </ns0:node>
+    <ns0:edge id="e0" source="n0" target="n1">
+      <ns0:data key="d10">
+        <ns2:PolyLineEdge>
+          <ns2:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0" />
+          <ns2:LineStyle color="#008080" type="line" width="7.0" />
+          <ns2:Arrows source="none" target="delta" />
+          <ns2:EdgeLabel alignment="center" configuration="AutoFlippingLabel" distance="2.0" fontFamily="DejaVu Sans Mono" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.96875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" preferredPlacement="anywhere" ratio="0.5" textColor="#CCFFFF" verticalTextPosition="bottom" visible="true" width="54.572265625" x="-17.730864319620252" y="4.99462890625">fread()<ns2:LabelModel>
+              <ns2:SmartEdgeLabelModel autoRotationEnabled="false" defaultAngle="0.0" defaultDistance="10.0" />
+            </ns2:LabelModel>
+            <ns2:ModelParameter>
+              <ns2:SmartEdgeLabelModelParameter angle="6.283185307179586" distance="10.0" distanceToCenter="false" position="center" ratio="0.0" segment="0" />
+            </ns2:ModelParameter>
+            <ns2:PreferredPlacementDescriptor angle="0.0" angleOffsetOnRightSide="0" angleReference="absolute" angleRotationOnRightSide="co" distance="-1.0" frozen="true" placement="anywhere" side="anywhere" sideReference="relative_to_edge_flow" />
+          </ns2:EdgeLabel>
+          <ns2:BendStyle smoothed="false" />
+        </ns2:PolyLineEdge>
+      </ns0:data>
+    </ns0:edge>
+  </ns0:graph>
+  <ns0:data key="d7">
+    <ns2:Resources />
+  </ns0:data>
+</ns0:graphml>
