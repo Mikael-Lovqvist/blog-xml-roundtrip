@@ -11,6 +11,9 @@ def lxml_etree_to_local_xml(node, tree=None):
 
 		children = tuple()
 
+		#if node.tag == '_T_graph':
+		#	print(node.getchildren()[0].nsmap)
+
 		if node.text:
 			children += (T.data(node.text),)
 
@@ -42,6 +45,6 @@ def lxml_etree_to_local_xml(node, tree=None):
 
 
 def local_xml_from_filename(filename):
-	[r] = lxml_etree_to_local_xml(etree.parse('data/basic-test.xml'))
+	[r] = lxml_etree_to_local_xml(etree.parse(filename))
 	return r
 

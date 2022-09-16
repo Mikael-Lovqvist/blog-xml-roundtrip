@@ -1,133 +1,135 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<templates xmlns:y="http://www.yworks.com/xml/graphml">
+  <_T_key_definitions>
+    <key attr.name="Description" attr.type="string" for="graph" id="d0"/>
+    <key for="port" id="d1" yfiles.type="portgraphics"/>
+    <key for="port" id="d2" yfiles.type="portgeometry"/>
+    <key for="port" id="d3" yfiles.type="portuserdata"/>
+    <key attr.name="url" attr.type="string" for="node" id="d4"/>
+    <key attr.name="description" attr.type="string" for="node" id="d5"/>
+    <key for="node" id="d6" yfiles.type="nodegraphics"/>
+    <key for="graphml" id="d7" yfiles.type="resources"/>
+    <key attr.name="url" attr.type="string" for="edge" id="d8"/>
+    <key attr.name="description" attr.type="string" for="edge" id="d9"/>
+    <key for="edge" id="d10" yfiles.type="edgegraphics"/>
+  </_T_key_definitions>
 
-<__DEFINE_TEMPLATE__ id="key_definitions">
-  <key attr.name="Description" attr.type="string" for="graph" id="d0"/>
-  <key for="port" id="d1" yfiles.type="portgraphics"/>
-  <key for="port" id="d2" yfiles.type="portgeometry"/>
-  <key for="port" id="d3" yfiles.type="portuserdata"/>
-  <key attr.name="url" attr.type="string" for="node" id="d4"/>
-  <key attr.name="description" attr.type="string" for="node" id="d5"/>
-  <key for="node" id="d6" yfiles.type="nodegraphics"/>
-  <key for="graphml" id="d7" yfiles.type="resources"/>
-  <key attr.name="url" attr.type="string" for="edge" id="d8"/>
-  <key attr.name="description" attr.type="string" for="edge" id="d9"/>
-  <key for="edge" id="d10" yfiles.type="edgegraphics"/>
-</__DEFINE_TEMPLATE__>
+  <_T_resources>
+    <y:Resources/>
+  </_T_resources>
 
-<__DEFINE_TEMPLATE__ id="resources">
-  <y:Resources/>
-</__DEFINE_TEMPLATE__>
+  <_T_data_definitions>
+      <data key="_V_id">
+        <_V_resources/>
+      </data>
+  </_T_data_definitions>
 
-<__DEFINE_TEMPLATE__ id="data_definitions">
-    <data key="__VAR__id">
-      <__VAR__resources/>
+  <_T_graph_def>
+    <graph edgedefault="directed" id="_V_id">
+      <_V_key_ref/>
+      <_V_nodes/>
+      <_V_edges/>
+    </graph>
+  </_T_graph_def>
+
+
+  <_T_key_ref>
+    <data key="_V_id">
+      <!--<_V_contents optional="1"/>-->
+      <_V_contents/>
     </data>
-</__DEFINE_TEMPLATE__>
+  </_T_key_ref>
 
-<__DEFINE_TEMPLATE__ id="graph">
-  <graph edgedefault="directed" id="__VAR__id">
-    <__VAR__key_ref/>
-    <__VAR__nodes/>
-    <__VAR__edges/>
-  </graph>
-</__DEFINE_TEMPLATE__>
+  <_T_node>
+    <node id="_V_id">
+      <_V_key_refs/>
+    </node>
+  </_T_node>
 
+  <_T_shape_node>
+    <y:ShapeNode>
+      <y:Geometry height="30.0" width="30.0" x="0.0" y="0.0"/>
+      <y:Fill color="#FFCC00" transparent="false"/>
+      <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
+      <y:NodeLabel
+        alignment="center"
+        autoSizePolicy="content"
+        fontFamily="Dialog"
+        fontSize="12"
+        fontStyle="plain"
+        hasBackgroundColor="false"
+        hasLineColor="false"
+        height="20.344114303588867"
+        horizontalTextPosition="center"
+        iconTextGap="4"
+        modelName="custom"
+        textColor="#000000"
+        verticalTextPosition="bottom"
+        visible="true"
+        width="67.78045654296875"
+        x="-18.890228271484375"
+        y="4.827942848205566">_V_label<y:LabelModel>
 
-<__DEFINE_TEMPLATE__ id="key_ref">
-  <data key="__VAR__id">
-    <__VAR__contents optional="1"/>
-  </data>
-</__DEFINE_TEMPLATE__>
+          <y:SmartNodeLabelModel distance="4.0"/>
+        </y:LabelModel>
+        <y:ModelParameter>
+          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+        </y:ModelParameter>
+      </y:NodeLabel>
+      <y:Shape type="rectangle3d"/>
+    </y:ShapeNode>
+  </_T_shape_node>
 
-<__DEFINE_TEMPLATE__ id="node">
-  <node id="__VAR__id">
-    <__VAR__key_refs/>
-  </node>
-</__DEFINE_TEMPLATE__>
+  <_T_edge_shape>
+    <y:PolyLineEdge>
+      <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+      <y:LineStyle color="#008080" type="line" width="7.0"/>
+      <y:Arrows source="none" target="delta"/>
+      <y:EdgeLabel
+        alignment="center"
+        configuration="AutoFlippingLabel"
+        distance="2.0"
+        fontFamily="DejaVu Sans Mono"
+        fontSize="12"
+        fontStyle="plain"
+        hasBackgroundColor="false"
+        hasLineColor="false"
+        height="17.96875"
+        horizontalTextPosition="center"
+        iconTextGap="4"
+        modelName="custom"
+        preferredPlacement="anywhere"
+        ratio="0.5"
+        textColor="#CCFFFF"
+        verticalTextPosition="bottom"
+        visible="true"
+        width="54.572265625"
+        x="-17.730864319620252"
+        y="4.99462890625">_V_label<y:LabelModel>
+          <y:SmartEdgeLabelModel autoRotationEnabled="false" defaultAngle="0.0" defaultDistance="10.0"/>
+        </y:LabelModel>
+        <y:ModelParameter>
+          <y:SmartEdgeLabelModelParameter angle="6.283185307179586" distance="10.0" distanceToCenter="false" position="center" ratio="0.0" segment="0"/>
+        </y:ModelParameter>
+        <y:PreferredPlacementDescriptor angle="0.0" angleOffsetOnRightSide="0" angleReference="absolute" angleRotationOnRightSide="co" distance="-1.0" frozen="true" placement="anywhere" side="anywhere" sideReference="relative_to_edge_flow"/>
+      </y:EdgeLabel>
+      <y:BendStyle smoothed="false"/>
+    </y:PolyLineEdge>
+  </_T_edge_shape>
 
-<__DEFINE_TEMPLATE__ id="shape_node">
-  <y:ShapeNode>
-    <y:Geometry height="30.0" width="30.0" x="0.0" y="0.0"/>
-    <y:Fill color="#FFCC00" transparent="false"/>
-    <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
-    <y:NodeLabel
-      alignment="center"
-      autoSizePolicy="content"
-      fontFamily="Dialog"
-      fontSize="12"
-      fontStyle="plain"
-      hasBackgroundColor="false"
-      hasLineColor="false"
-      height="20.344114303588867"
-      horizontalTextPosition="center"
-      iconTextGap="4"
-      modelName="custom"
-      textColor="#000000"
-      verticalTextPosition="bottom"
-      visible="true"
-      width="67.78045654296875"
-      x="-18.890228271484375"
-      y="4.827942848205566">__VAR__label<y:LabelModel>
-
-        <y:SmartNodeLabelModel distance="4.0"/>
-      </y:LabelModel>
-      <y:ModelParameter>
-        <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
-      </y:ModelParameter>
-    </y:NodeLabel>
-    <y:Shape type="rectangle3d"/>
-  </y:ShapeNode>
-</__DEFINE_TEMPLATE__>
-
-<__DEFINE_TEMPLATE__ id="edge_shape">
-  <y:PolyLineEdge>
-    <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
-    <y:LineStyle color="#008080" type="line" width="7.0"/>
-    <y:Arrows source="none" target="delta"/>
-    <y:EdgeLabel
-      alignment="center"
-      configuration="AutoFlippingLabel"
-      distance="2.0"
-      fontFamily="DejaVu Sans Mono"
-      fontSize="12"
-      fontStyle="plain"
-      hasBackgroundColor="false"
-      hasLineColor="false"
-      height="17.96875"
-      horizontalTextPosition="center"
-      iconTextGap="4"
-      modelName="custom"
-      preferredPlacement="anywhere"
-      ratio="0.5"
-      textColor="#CCFFFF"
-      verticalTextPosition="bottom"
-      visible="true"
-      width="54.572265625"
-      x="-17.730864319620252"
-      y="4.99462890625">__VAR__label<y:LabelModel>
-        <y:SmartEdgeLabelModel autoRotationEnabled="false" defaultAngle="0.0" defaultDistance="10.0"/>
-      </y:LabelModel>
-      <y:ModelParameter>
-        <y:SmartEdgeLabelModelParameter angle="6.283185307179586" distance="10.0" distanceToCenter="false" position="center" ratio="0.0" segment="0"/>
-      </y:ModelParameter>
-      <y:PreferredPlacementDescriptor angle="0.0" angleOffsetOnRightSide="0" angleReference="absolute" angleRotationOnRightSide="co" distance="-1.0" frozen="true" placement="anywhere" side="anywhere" sideReference="relative_to_edge_flow"/>
-    </y:EdgeLabel>
-    <y:BendStyle smoothed="false"/>
-  </y:PolyLineEdge>
-</__DEFINE_TEMPLATE__>
-
-<__DEFINE_TEMPLATE__ id="edge">
-  <edge id="__VAR__id" source="__VAR__source" target="__VAR__destination">
-    <__VAR__data_refs/>
-  </edge>
-</__DEFINE_TEMPLATE__>
+  <_T_edge>
+    <edge id="_V_id" source="_V_source" target="_V_destination">
+      <_V_data_refs/>
+    </edge>
+  </_T_edge>
 
 
-<__DEFINE_TEMPLATE__ id="graph">
-  <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
-    <!--Created by __TOOL__-->
-    <__VAR__key_definitions/>
-    <__VAR__graph/>
-    <__VAR__data_definitions/>
-  </graphml>
-</__DEFINE_TEMPLATE__>
+  <_T_graph>
+    <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+      <!--Created by _V_tool-->
+      <_V_key_definitions/>
+      <_V_graph/>
+      <_V_data_definitions/>
+    </graphml>
+  </_T_graph>
+</templates>

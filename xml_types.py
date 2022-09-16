@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from lxml import etree
 from collections import deque
 
@@ -24,10 +24,38 @@ class node:
 	attributes: tuple
 	children: tuple
 
+	def walk_everything(self):
+		yield self
+		for attribute in self.attributes:
+			yield from attribute.walk_everything()
+
+		for child in self.children:
+			yield from child.walk_everything()
+
 	def filter(self, configuration):
+
+		#Set temporary state
+		configuration.process_child_node = None
 
 		#First we check if the node was replaced
 		if (candidate := configuration.node(self)) is not self:
+			if child_node := configuration.process_child_node:
+
+				source = child_node.get()
+
+				new_node = node(
+					source.prefix,
+					source.tag,
+					(),
+					(),
+				)
+
+				with configuration.node_stack(new_node):
+					new_node.attributes = tuple_without_none(a.filter(configuration) for a in source.attributes)
+					new_node.children = tuple_without_none(c.filter(configuration) for c in source.children)
+
+				child_node.set(new_node)
+
 			return candidate
 
 		#If not we will filter the attributes and children
@@ -84,6 +112,10 @@ class tree:
 	namespace_map: dict
 	root: node
 
+	def walk_everything(self):
+		yield self
+		yield from self.root.walk_everything()
+
 	def filter(self, configuration):
 		new_tree = tree(self.namespace_map, None)
 		with configuration.tree_context(new_tree):
@@ -104,6 +136,17 @@ class attribute:
 	key: str
 	value: str
 
+
+	def walk_everything(self):
+		yield self
+
+		if not isinstance(self.key, str):
+			yield from self.key.walk_everything()
+
+		if not isinstance(self.value, str):
+			yield from self.value.walk_everything()
+
+
 	def filter(self, configuration):
 		return configuration.attribute(self)
 
@@ -123,17 +166,105 @@ class attribute:
 class placeholder:
 	id: str
 
+	def walk_everything(self):
+		yield self
+
 
 @dataclass
 class data:
 	value: str
 
+	def walk_everything(self):
+		yield self
+
+		if not isinstance(self.value, str):
+			yield from self.value.walk_everything()
+
 	def filter(self, configuration):
 		return configuration.data(self)
 
 @dataclass
+class text_sequence:
+	sequence: deque = field(default_factory=deque)
+
+
+	def walk_everything(self):
+		yield self
+
+		for item in self.sequence:
+			if not isinstance(item, str):
+				yield from item.walk_everything()
+
+
+@dataclass
+class template_collection:
+	tree: tree
+
+	def walk_everything(self):
+		yield self
+		yield from self.tree.walk_everything()
+
+	def get_template_ns(self, name='templates'):
+		return type(name, (), {t.id: t for t in self.walk_everything() if isinstance(t, template)})
+
+
+@dataclass
+class fragment:
+	children: deque = field(default_factory=deque)
+
+@dataclass
+class template:
+	id: str
+	root: node
+
+	def walk_everything(self):
+		yield self
+		yield from self.root.walk_everything()
+
+	def __call__(self):
+		return self.format(self.root)
+
+	def resolve_symbol(self, symbol):
+		print(symbol)
+		return 'UNRESOLVED'
+
+	def format(self, item):
+		ic = type(item)
+		if ic is str:
+			return item
+		elif ic is node:
+			return node(
+				item.prefix,
+				item.tag,
+				tuple(self.format(child) for child in item.children),
+				tuple(self.format(attribute) for attribute in item.attributes),
+			)
+		elif ic is data:
+			return data(self.format(item.value))
+		elif ic is comment:
+			return comment(self.format(item.value))
+		elif ic is attribute:
+			return attribute(
+				self.format(item.key),
+				self.format(item.value),
+			)
+		elif ic is text_sequence:
+			return ''.join(self.format(p) for p in item.sequence)
+		elif ic is placeholder:
+			return self.resolve_symbol(item.id)
+		else:
+			raise NotImplementedError(ic)
+
+@dataclass
 class comment:
 	value: str
+
+	def walk_everything(self):
+		yield self
+
+		if not isinstance(self.value, str):
+			yield from self.value.walk_everything()
+
 
 	def filter(self, configuration):
 		return configuration.comment(self)
@@ -198,11 +329,23 @@ class pending_stack_value:
 	def __exit__(self, ev, et, tb):
 		self.stack.pop()
 
-class filter_configuration:
+@dataclass
+class access_attribute:
+	target: object
+	name: str
 
-	def __init__(self):
-		self.node_stack = simple_stack()
-		self.tree_context = simple_context()
+	def get(self):
+		return getattr(self.target, self.name)
+
+	def set(self, value):
+		setattr(self.target, self.name, value)
+
+@dataclass
+class filter_configuration:
+	node_stack: object = field(default_factory=simple_stack)
+	tree_context: object = field(default_factory=simple_context)
+
+	process_child_node = None
 
 	#Helper property
 	@property
