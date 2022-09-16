@@ -48,3 +48,7 @@ def local_xml_from_filename(filename):
 	[r] = lxml_etree_to_local_xml(etree.parse(filename))
 	return r
 
+def local_xml_from_string(data):
+	[r] = lxml_etree_to_local_xml(etree.fromstring(data))
+	return r
+
