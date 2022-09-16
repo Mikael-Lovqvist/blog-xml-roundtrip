@@ -8,8 +8,10 @@ from xml_templates import local_xml_from_filename
 templates = local_xml_from_filename('data/template1.graphml-template')
 
 for t in templates.root.children:
-	if isinstance(t, T.node) and t.tag == '_T_graph':
-		print(t.children[1].attributes)
+	if isinstance(t, T.node):
+		print(t.tag)
+		for a in t.children[1].attributes:
+			print(f'    {a}')
 
 
 #TM = templates.get_template_ns()

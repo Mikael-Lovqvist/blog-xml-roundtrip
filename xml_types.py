@@ -109,7 +109,6 @@ class node:
 
 @dataclass
 class tree:
-	namespace_map: dict
 	root: node
 
 	def walk_everything(self):
@@ -161,6 +160,11 @@ class attribute:
 			return
 
 		return (key, value)
+
+@dataclass
+class ns_attribute(attribute):
+	pass
+
 
 @dataclass
 class placeholder:

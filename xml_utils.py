@@ -1,7 +1,18 @@
 import xml_types as T
 from lxml import etree
 
-def lxml_etree_to_local_xml(node, tree=None):
+
+def ns_diff(old, new):
+	#Note - we do not check if new is missing something from old - this is assumed to not happen
+	result = dict()
+	for key, value in new.items():
+		if (key not in old) or (value != old[key]):
+			result[key] = value
+
+	return result
+
+
+def lxml_etree_to_local_xml(node, parent=None):
 	if node.__class__ is etree._Comment:
 		yield T.comment(node.text)
 
@@ -18,9 +29,15 @@ def lxml_etree_to_local_xml(node, tree=None):
 			children += (T.data(node.text),)
 
 		for child in node.getchildren():
-			children += tuple(lxml_etree_to_local_xml(child))
+			children += tuple(lxml_etree_to_local_xml(child, node))
 
-		attributes = tuple(T.attribute(key, value) for key, value in node.items())
+		if parent is not None:
+			ns_attributes = tuple(T.ns_attribute(f'xmlns:{key}' if key is not None else 'xmlns', value) for key, value in ns_diff(parent.nsmap, node.nsmap).items())
+
+		else:
+			ns_attributes = tuple(T.ns_attribute(f'xmlns:{key}' if key is not None else 'xmlns', value) for key, value in node.nsmap.items())
+
+		attributes = tuple(T.attribute(key, value) for key, value in node.items()) + ns_attributes
 
 		yield T.node(node.prefix, plain, attributes, children)
 
@@ -32,9 +49,9 @@ def lxml_etree_to_local_xml(node, tree=None):
 		#for child in root.getchildren():
 			#children += tuple(lxml_etree_to_local_xml(child))
 
-		[local_root] = lxml_etree_to_local_xml(root)
+		[local_root] = lxml_etree_to_local_xml(root, None)
 
-		yield T.tree(dict(root.nsmap), local_root)
+		yield T.tree(local_root)
 		return #tree has no tail
 
 	else:
