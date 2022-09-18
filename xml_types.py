@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from lxml import etree
 from collections import deque
 
-
 class symbol:
 	def __init__(self, name):
 		self.name = name
@@ -10,10 +9,60 @@ class symbol:
 	def __repr__(self):
 		return self.name
 
+
+RAISE_EXCEPTION = symbol('RAISE_EXCEPTION')
+MISS = symbol('MISS')
+
+class stacked_dict(deque):
+	def __call__(self, sub_dict):
+		return pending_stacked_dict(self, sub_dict)
+
+	def get_dict(self):
+		result = dict()
+		for item in self:
+			result.update(item)
+
+		return result
+
+
+class simple_stack(deque):
+	def __call__(self, value):
+		return pending_stack_value(self, value)
+
+	def get(self, default=RAISE_EXCEPTION):
+		if self:
+			return self[-1]
+		elif default is RAISE_EXCEPTION:
+			raise Exception('Stack underflow')
+		else:
+			return default
+
+class simple_context:
+	def __call__(self, value):
+		return pending_context_value(self, value)
+
+	def get(self, default=RAISE_EXCEPTION):
+		if (value := getattr(self, 'value', MISS)) is not MISS:
+			return value
+		elif default is RAISE_EXCEPTION:
+			raise Exception('Context not available')
+		else:
+			return value
+
+
+def get_ns_key(item):
+	if item == 'xmlns':
+		return None
+
+	assert item.startswith('xmlns'), '{item!r} is not a proper namespace identifier.'
+	_, tail = item.split(':')
+	return tail
+
+
 def tuple_without_none(iterable):
 	return tuple(i for i in iterable if i is not None)
 
-def iter_wihtout_none(iterable):
+def iter_without_none(iterable):
 	return (i for i in iterable if i is not None)
 
 
@@ -23,6 +72,19 @@ class node:
 	tag: str
 	attributes: tuple
 	children: tuple
+
+	def as_root(self):
+		#We will ignore any data here - potentially later on we could decide if we should ignore all data or only whitespace or not at all
+		root = None
+		for child in self.children:
+			if isinstance(child, node):
+				if root:
+					raise Exception('Too many child nodes')
+				else:
+					root = child
+
+		assert root, 'Too few child nodes'
+		return root
 
 	def walk_everything(self):
 		yield self
@@ -74,37 +136,44 @@ class node:
 
 
 	def to_lxml_etree(self, context):
-		tree = context.get_tree()
-		element = etree.Element(
-			f'{{{tree.namespace_map[self.prefix]}}}{self.tag}' if self.prefix else self.tag,
-			dict(iter_wihtout_none(a.to_lxml_etree(context) for a in self.attributes)),
-			tree.namespace_map,
-		)
+		child_attributes = tuple(a for a in self.attributes if type(a) is attribute)
+		ns_attributes = tuple(a for a in self.attributes if type(a) is ns_attribute)
 
-		for child_candidate in self.children:
 
-			child = context.resolve_placeholder(child_candidate)
-			if child is None:
-				continue
+		with context.stack_namespace({get_ns_key(a.key): a.value for a in ns_attributes}) as namespace_map:
 
-			if isinstance(child, (node, comment)):
-				element.append(child.to_lxml_etree(context))
-			elif isinstance(child, data):
-				if len(element) == 0:
-					if element.text is None:
-						element.text = child.value
+			#tree = context.get_tree()
+			element = etree.Element(
+				f'{{{namespace_map[self.prefix]}}}{self.tag}' if self.prefix else self.tag,
+				#f'{self.prefix}:{self.tag}' if self.prefix else self.tag,
+				dict(iter_without_none(a.to_lxml_etree(context) for a in child_attributes)),
+				namespace_map,
+			)
+
+			for child_candidate in self.children:
+
+				child = context.resolve_placeholder(child_candidate)
+				if child is None:
+					continue
+
+				if isinstance(child, (node, comment)):
+					element.append(child.to_lxml_etree(context))
+				elif isinstance(child, data):
+					if len(element) == 0:
+						if element.text is None:
+							element.text = child.value
+						else:
+							element.text += child.value
 					else:
-						element.text += child.value
+						tail_element = element[-1]
+						if tail_element.tail is None:
+							tail_element.tail = child.value
+						else:
+							tail_element.tail += child.value
 				else:
-					tail_element = element[-1]
-					if tail_element.tail is None:
-						tail_element.tail = child.value
-					else:
-						tail_element.tail += child.value
-			else:
-				raise NotImplementedError(child)
+					raise NotImplementedError(child)
 
-		return element
+			return element
 
 
 @dataclass
@@ -116,18 +185,22 @@ class tree:
 		yield from self.root.walk_everything()
 
 	def filter(self, configuration):
-		new_tree = tree(self.namespace_map, None)
-		with configuration.tree_context(new_tree):
-			new_tree.root = self.root.filter(configuration)
+		return tree(self.root.filter(configuration))
+		# new_tree = tree(None)
+		# with configuration.tree_context(new_tree):
+		# 	new_tree.root = self.root.filter(configuration)
 
-		return new_tree
+		# return new_tree
 
 	def to_lxml_etree(self, context):
-		with context.tree_context(self):
-			return etree.ElementTree(
-				self.root.to_lxml_etree(context),
-			)
+		# with context.tree_context(self):
+		# 	return etree.ElementTree(
+		# 		self.root.to_lxml_etree(context),
+		# 	)
 
+		return etree.ElementTree(
+			self.root.to_lxml_etree(context),
+		)
 
 
 @dataclass
@@ -178,6 +251,7 @@ class placeholder:
 class data:
 	value: str
 
+
 	def walk_everything(self):
 		yield self
 
@@ -220,17 +294,16 @@ class fragment:
 class template:
 	id: str
 	root: node
+	context: simple_context = field(default_factory=simple_context)
 
 	def walk_everything(self):
 		yield self
 		yield from self.root.walk_everything()
 
-	def __call__(self):
-		return self.format(self.root)
+	def __call__(self, context):
+		with self.context(context):
+			return self.format(self.root)
 
-	def resolve_symbol(self, symbol):
-		print(symbol)
-		return 'UNRESOLVED'
 
 	def format(self, item):
 		ic = type(item)
@@ -240,22 +313,22 @@ class template:
 			return node(
 				item.prefix,
 				item.tag,
-				tuple(self.format(child) for child in item.children),
 				tuple(self.format(attribute) for attribute in item.attributes),
+				tuple(self.format(child) for child in item.children),
 			)
 		elif ic is data:
 			return data(self.format(item.value))
 		elif ic is comment:
 			return comment(self.format(item.value))
-		elif ic is attribute:
-			return attribute(
+		elif ic in (attribute, ns_attribute):
+			return ic(
 				self.format(item.key),
 				self.format(item.value),
 			)
 		elif ic is text_sequence:
 			return ''.join(self.format(p) for p in item.sequence)
 		elif ic is placeholder:
-			return self.resolve_symbol(item.id)
+			return self.context.value.resolve_placeholder(item)
 		else:
 			raise NotImplementedError(ic)
 
@@ -278,33 +351,6 @@ class comment:
 		return etree.Comment(self.value)
 
 
-
-RAISE_EXCEPTION = symbol('RAISE_EXCEPTION')
-MISS = symbol('MISS')
-
-class simple_stack(deque):
-	def __call__(self, value):
-		return pending_stack_value(self, value)
-
-	def get(self, default=RAISE_EXCEPTION):
-		if self:
-			return self[-1]
-		elif default is RAISE_EXCEPTION:
-			raise Exception('Stack underflow')
-		else:
-			return default
-
-class simple_context:
-	def __call__(self, value):
-		return pending_context_value(self, value)
-
-	def get(self, default=RAISE_EXCEPTION):
-		if (value := getattr(self, 'value', MISS)) is not MISS:
-			return value
-		elif default is RAISE_EXCEPTION:
-			raise Exception('Context not available')
-		else:
-			return value
 
 
 @dataclass
@@ -333,6 +379,20 @@ class pending_stack_value:
 	def __exit__(self, ev, et, tb):
 		self.stack.pop()
 
+
+@dataclass
+class pending_stacked_dict:
+	stack: simple_stack
+	value: object
+
+	def __enter__(self):
+		self.stack.append(self.value)
+		return self.stack.get_dict()
+
+	def __exit__(self, ev, et, tb):
+		self.stack.pop()
+
+
 @dataclass
 class access_attribute:
 	target: object
@@ -347,14 +407,14 @@ class access_attribute:
 @dataclass
 class filter_configuration:
 	node_stack: object = field(default_factory=simple_stack)
-	tree_context: object = field(default_factory=simple_context)
+	#tree_context: object = field(default_factory=simple_context)
 
 	process_child_node = None
 
 	#Helper property
-	@property
-	def tree(self):
-		return self.tree_context.get(None)
+	# @property
+	# def tree(self):
+	# 	return self.tree_context.get(None)
 
 	@property
 	def parent(self):
@@ -375,9 +435,10 @@ class filter_configuration:
 
 class context:
 	def __init__(self, placeholder_data=None):
-		self.tree_context = simple_context()
-		self.get_tree = self.tree_context.get
+		#self.tree_context = simple_context()
+		#self.get_tree = self.tree_context.get
 		self.placeholder_data = placeholder_data if placeholder_data is not None else dict()
+		self.stack_namespace = stacked_dict()
 
 	def resolve_placeholder(self, candidate_placeholder):
 		if isinstance(candidate_placeholder, placeholder):
