@@ -139,7 +139,6 @@ class node:
 		child_attributes = tuple(a for a in self.attributes if type(a) is attribute)
 		ns_attributes = tuple(a for a in self.attributes if type(a) is ns_attribute)
 
-
 		with context.stack_namespace({get_ns_key(a.key): a.value for a in ns_attributes}) as namespace_map:
 
 			#tree = context.get_tree()
@@ -277,6 +276,12 @@ class text_sequence:
 @dataclass
 class template_collection:
 	tree: tree
+
+	# def __post_init__(self):
+	# 	global_ns_attributes = tuple(a for a in self.tree.root.attributes if type(a) is ns_attribute)
+	# 	for t in self.walk_everything():
+	# 		if isinstance(t, template):
+	# 			t.root.attributes += global_ns_attributes
 
 	def walk_everything(self):
 		yield self

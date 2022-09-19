@@ -129,11 +129,13 @@ class template_configuration(T.filter_configuration):
 
 
 def templates_from_xml_filename(filename):
-	return T.template_collection(local_xml_from_filename(filename).filter(template_configuration(
+	xml = local_xml_from_filename(filename).filter(template_configuration(
 		template_pattern = r'_T_(.*)',
 		variable_pattern = r'_V_(.*)',
 		process_nodes = True,
 		process_attributes = True,
 		process_data = True,
 		process_comments = True,
-	)))
+	))
+
+	return T.template_collection(xml)

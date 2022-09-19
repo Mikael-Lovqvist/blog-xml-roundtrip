@@ -25,12 +25,16 @@ print(TM)
 context = T.context(placeholder_data = dict(
 	key_definitions = T.data('keydefs'),
 	data_definitions = T.data('datadefs'),
-	graph = T.node('yed', 'graph', (), ()),
+	graph = T.node('y', 'graph', (), ()),
 	tool = 'sometool',
 ))
 
 
+
 g = TM.graph(context).as_root()
+
+
+exit()
 
 
 from lxml import etree
@@ -39,7 +43,7 @@ from pygments import highlight
 from pygments.lexers import XmlLexer
 from pygments.formatters import Terminal256Formatter
 
-original = str(etree.tostring(et, xml_declaration=True, standalone='yes', encoding='UTF-8', pretty_print=True), 'utf-8')
+original = str(etree.tostring(et, xml_declaration=True, standalone=False, encoding='UTF-8', pretty_print=True), 'utf-8')
 print()
 print(highlight(original, XmlLexer(), Terminal256Formatter(style='fruity')))
 
