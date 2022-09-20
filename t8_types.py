@@ -4,30 +4,104 @@ from collections import deque
 
 WS_CHARS = set('\t\r\n ')
 
+def istype(item, type_or_tuple):
+	item_type = type(item)
+	if isinstance(type_or_tuple, (tuple, list)):
+		for sub_type in type_or_tuple:
+			if item_type is sub_type:
+				return True
+	else:
+		if item_type is type_or_tuple:
+			return True
+
+	return False
+
+
+class interface:
+	class element_attributes:
+		def process_attributes(self, processor):
+			for attribute in self.attributes:
+				yield processor(attribute)
+
+	class element_children:
+		def process_children(self, processor):
+			for child in self.children:
+				yield processor(child)
+
+		def iter_children(self, instance_check=None, type_check=None):
+			for child in self.children:
+				def process_child():
+					use_filtering = bool(instance_check or type_check)
+
+					if instance_check:
+						if isinstance(child, instance_check):
+							yield child
+							return
+					elif type_check:
+						if istype(child, type_check):
+							yield child
+							return
+
+					else:
+						yield child
+
+				yield from process_child()
+
+
+
 class XML_TOKEN:
-	class meta_tag:
+	class meta_element(interface.element_attributes):
 		def __init__(self, tag, attributes=None):
 			self.tag = tag
 			self.attributes = deque() if attributes is None else attributes
 
-	class tag:
+		def __repr__(self):
+			return f'<{self.__class__.__qualname__} {self.tag!r} #A {len(self.attributes)}>'
+
+	class element(interface.element_children, interface.element_attributes):
 		def __init__(self, prefix, tag, attributes=None, children=None):
 			self.prefix = prefix
 			self.tag = tag
 			self.attributes = deque() if attributes is None else attributes
 			self.children = deque() if children is None else children
 
+		def __repr__(self):
+			return f'<{self.__class__.__qualname__} {self.prefix!r}:{self.tag!r} #A {len(self.attributes)} #C {len(self.children)}>'
+
 	class data:
 		def __init__(self, value):
 			self.value = value
+
+		def __repr__(self):
+			return f'<{self.__class__.__qualname__} #D {len(self.value)}>'
+
+	class reference:
+		def __init__(self, id):
+			self.id = id
+
+		def __repr__(self):
+			return f'<{self.__class__.__qualname__} {self.id!r}>'
 
 	class comment:
 		def __init__(self, value):
 			self.value = value
 
-	class document:
+		def __repr__(self):
+			return f'<{self.__class__.__qualname__} #D {len(self.value)}>'
+
+	class document(interface.element_children):
 		def __init__(self, children=None):
 			self.children = deque() if children is None else children
+
+		def __repr__(self):
+			return f'<{self.__class__.__qualname__} #C {len(self.children)}>'
+
+	class fragment(interface.element_children):
+		def __init__(self, children=None):
+			self.children = deque() if children is None else children
+
+		def __repr__(self):
+			return f'<{self.__class__.__qualname__} #C {len(self.children)}>'
 
 	class attribute_name:
 		def __init__(self, prefix, name):
@@ -39,6 +113,9 @@ class XML_TOKEN:
 			self.prefix = prefix
 			self.name = name
 			self.value = value
+
+		def __repr__(self):
+			return f'<{self.__class__.__qualname__} {self.prefix!r}:{self.name!r} = {self.value!r}>'
 
 
 class rule:
@@ -115,7 +192,7 @@ class tokenizer:
 						result = rule.function(self, rule, m)
 						break
 			else:
-				raise Exception('Unknown syntax',  self.position, self.text[self.position:self.position+100])
+				raise Exception(f'Unknown syntax ({self.rule.current})',  self.position, self.text[self.position:self.position+100])
 
 class rules:
 	class main:
@@ -133,7 +210,7 @@ class rules:
 		def start_meta_tag(parser, rule, match):
 			parser.position = match.end()
 			parser.rule.push(rules.in_meta_tag)
-			parser.element.push(XML_TOKEN.meta_tag(match.group(1)))
+			parser.element.push(XML_TOKEN.meta_element(match.group(1)))
 
 		@rule(r'<(\w+)(?::(\w+))?')
 		def start_tag(parser, rule, match):
@@ -145,7 +222,7 @@ class rules:
 
 			parser.position = match.end()
 			parser.rule.push(rules.in_tag)
-			parser.element.push(XML_TOKEN.tag(prefix, tag))
+			parser.element.push(XML_TOKEN.element(prefix, tag))
 
 		@rule(r'</(\w+)(?::(\w+))?>')
 		def end_tag(parser, rule, match):
@@ -232,6 +309,39 @@ class rules:
 			parser.rule.pop()
 			parser.rule.push(rules.single_quoted_value)
 
+		@rule(r'\s*=\s*PLACEHOLDER:([\w\.]+)')	#TODO - should be configurable
+		def placeholder(parser, rule, match):
+			parser.position = match.end()
+			parser.rule.pop()
+			parser.emit_attribute_value(XML_TOKEN.reference(match.group(1)))
+
+		@rule(r'>')
+		def laxed_end(parser, rule, match):
+			#TODO - this feature should be optional
+			parser.position = match.end()
+			parser.emit_attribute_value(None)
+			parser.rule.pop()	#name
+			parser.rule.pop()	#tag
+
+
+		@rule(r'\s*([\w\.]+)(?::([\w\.]+))?')	#This is a bit of a hack since I am not sure if schemas can have dots or not but it will do for now
+		def laxed_attribute_start(parser, rule, match):
+			#TODO - this feature should be optional
+			left, right = match.groups()
+			if right is None:
+				prefix, name = None, left
+			else:
+				prefix, name = left, right
+
+			parser.position = match.end()
+			parser.emit_attribute_value(None)
+			parser.rule.pop()	#name
+
+			parser.rule.push(rules.after_attribute_name)
+			parser.emit_attribute_name(prefix, name)
+
+
+
 	class double_quoted_value:
 		#TODO - support escapes
 		@rule(r'[^"]*')
@@ -251,12 +361,11 @@ class rules:
 			parser.emit_attribute_value(match.group(0))
 
 
-
 def format_xml(item):
-	if isinstance(item, XML_TOKEN.document):
+	if isinstance(item, (XML_TOKEN.document, XML_TOKEN.fragment)):
 		return ''.join(format_xml(c) for c in item.children)
 
-	elif isinstance(item, XML_TOKEN.meta_tag):
+	elif isinstance(item, XML_TOKEN.meta_element):
 		inner = ' '.join((item.tag, *(format_xml(c) for c in item.attributes)))
 		return f'<?{inner}?>'
 
@@ -268,7 +377,7 @@ def format_xml(item):
 		#TODO - escapes?
 		return f'<!--{item.value}-->'
 
-	elif isinstance(item, XML_TOKEN.tag):
+	elif isinstance(item, XML_TOKEN.element):
 		if item.prefix is None:
 			tag = item.tag
 		else:
@@ -283,7 +392,15 @@ def format_xml(item):
 			return f'<{tag_start}/>'
 
 	elif isinstance(item, XML_TOKEN.attribute):
-		value = item.value.replace('"', '\\"')	#TODO - make sure this is proper escapes
+		if item.value is None:
+			#value = ''	#This should potentially raise an exception depending on options
+			raise Exception(f'Found empty attribute value ({item}) in output meant to be formatted')
+		elif isinstance(item.value, XML_TOKEN.reference):
+			#value = f'MISSING PLACEHOLDER: {item.value.id}'	#TODO - this should perhaps raise exception
+			raise Exception(f'Found reference {item.value} in output meant to be formatted')
+		else:
+			value = item.value.replace('"', '\\"')	#TODO - make sure this is proper escapes
+
 		if item.prefix is None:
 			return f'{item.name}="{value}"'
 		else:
@@ -291,12 +408,50 @@ def format_xml(item):
 
 	raise TypeError(item)
 
+def walk_xml(item):
+	if isinstance(item, (XML_TOKEN.document, XML_TOKEN.fragment)):
+		yield item
+		for child in item.children:
+			yield from walk_xml(child)
 
-t = tokenizer(rules.main)
-t.process(Path('data/template2.xml').read_text())
+	elif isinstance(item, (XML_TOKEN.meta_element, XML_TOKEN.data, XML_TOKEN.comment, XML_TOKEN.attribute)):
+		yield item
 
-[doc] = t.element.pop_all() #make sure w get exactly one thing
-xml = format_xml(doc)
+	elif isinstance(item, XML_TOKEN.element):
+		yield item
+		for attribute in item.children:
+			yield from walk_xml(attribute)
 
-Path('out/template2-t8.xml').write_text(xml)
+		for child in item.children:
+			yield from walk_xml(child)
+	else:
+
+		raise TypeError(item)
+
+
+
+def dump(item, indent=''):
+	if isinstance(item, (XML_TOKEN.document, XML_TOKEN.fragment)):
+		print(f'{indent}{item!r}')
+		for child in item.children:
+			dump(child, f'{indent}  ')
+	elif isinstance(item, (XML_TOKEN.comment, XML_TOKEN.data)):
+		print(f'{indent}{item!r}: {item.value!r}')
+	elif isinstance(item, XML_TOKEN.element):
+		print(f'{indent}{item!r}')
+		for attribute in item.attributes:
+			dump(attribute, f'{indent}A ')
+		for child in item.children:
+			dump(child, f'{indent}C ')
+	else:
+		print(f'{indent}{item!r}')
+
+
+
+def pretty_dump_xml(xml):
+	from pygments import highlight
+	from pygments.lexers import XmlLexer
+	from pygments.formatters import Terminal256Formatter
+
+	print(highlight(xml, XmlLexer(), Terminal256Formatter(style='fruity')))
 
