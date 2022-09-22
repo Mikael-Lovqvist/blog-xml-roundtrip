@@ -1,3 +1,6 @@
+#From base directory
+#   PYTHONPATH=. python examples/t1.py
+
 import xml_inspection as XI
 import xml_helpers as XH
 import xml_formatting as XF
