@@ -1,7 +1,13 @@
-from t8_types import XML_TOKEN, tokenizer, rules
+from xml_tokenizer import tokenizer
+import xml_rules as rules
+import xml_types as XML
 
+
+#TODO - convert to symbol
 MISS = type('MISS', (), {})
 
+class base_template_collection:
+	pass
 
 class template_processor:
 	def __init__(self, parent=None, placeholder_prefix=None, template_prefix=None, locals=None, placeholder_fallback=None, template_factory=None):
@@ -51,45 +57,45 @@ class template_processor:
 
 	def iter_placeholders(self, item):
 		#TODO - support more placeholders
-		if isinstance(item, XML_TOKEN.element):
+		if isinstance(item, XML.element):
 			if self.placeholder_prefix and self.placeholder_prefix == item.prefix:
 				yield item.tag
 			else:
 				for attr in item.attributes:
-					if isinstance(attr.value, XML_TOKEN.reference):
+					if isinstance(attr.value, XML.reference):
 						yield attr.value.id
 
 				for child in item.children:
 					yield from self.iter_placeholders(child)
-		elif isinstance(item, XML_TOKEN.document):
+		elif isinstance(item, XML.document):
 			for child in item.children:
 				yield from self.iter_placeholders(child)
-		elif isinstance(item, (XML_TOKEN.data, XML_TOKEN.comment, XML_TOKEN.meta_element)):
+		elif isinstance(item, (XML.data, XML.comment, XML.meta_element)):
 			pass
 		else:
 			raise Exception(item)
 
 
 	def __call__(self, item):
-		if isinstance(item, XML_TOKEN.element):
+		if isinstance(item, XML.element):
 
 			if self.placeholder_prefix and self.placeholder_prefix == item.prefix:
 				return self.get_placeholder(item.tag)
 			else:
-				return XML_TOKEN.element(
+				return XML.element(
 					item.prefix,
 					item.tag,
 					tuple(item.process_attributes(self)),
 					tuple(item.process_children(self))
 				)
-		if isinstance(item, XML_TOKEN.meta_element):
+		if isinstance(item, XML.meta_element):
 			return item	#No change for now
 
-		elif isinstance(item, XML_TOKEN.data):
+		elif isinstance(item, XML.data):
 			return item	#No change
-		elif isinstance(item, XML_TOKEN.attribute):
-			if isinstance(item.value, XML_TOKEN.reference):
-				return XML_TOKEN.attribute(
+		elif isinstance(item, XML.attribute):
+			if isinstance(item.value, XML.reference):
+				return XML.attribute(
 					item.prefix,
 					item.name,
 					self.get_placeholder_value(item.value.id),
@@ -97,9 +103,9 @@ class template_processor:
 			else:
 				return item
 
-		elif isinstance(item, XML_TOKEN.document):	# We will check for templates in a document if we have template_prefix
+		elif isinstance(item, XML.document):	# We will check for templates in a document if we have template_prefix
 			if self.template_prefix:
-				return type('templates', (), {t.tag: self.template_factory(self, t.tag, t) for t in item.iter_children(instance_check=XML_TOKEN.element) if t.prefix == self.template_prefix})
+				return type('templates', (base_template_collection,), {t.tag: self.template_factory(self, t.tag, t) for t in item.iter_children(instance_check=XML.element) if t.prefix == self.template_prefix})
 			else:
 				return item
 		else:
@@ -116,7 +122,7 @@ class template:
 		self.element = element
 
 	def __call__(self, **context_updates):
-		return XML_TOKEN.fragment(tuple(self.element.process_children(self.context.stack(context_updates))))
+		return XML.fragment(tuple(self.element.process_children(self.context.stack(context_updates))))
 
 	def iter_placeholders(self):
 		yield from self.context.iter_placeholders(self.element)
@@ -140,16 +146,16 @@ class bound_positional_template:
 		args = ', '.join(self.placeholder_ids)
 		return f'<template {self.name}({args})>'
 
-def positional_template(ctx, id, data):
+def positional_template(processor, id, data):
 	if isinstance(data, str):
 		tok = tokenizer(rules.main)
 		tok.process(data)
 		[doc] = tok.element.pop_all() #make sure w get exactly one thing
-	elif isinstance(data, XML_TOKEN.element):
+	elif isinstance(data, XML.element):
 		doc = data
 	else:
 		raise TypeError(data)
-	temp = template(ctx, id, doc)
+	temp = template(processor, id, doc)
 
 	placeholder_ids = list(temp.iter_placeholders())
 
